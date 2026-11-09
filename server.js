@@ -168,4 +168,4 @@ http.createServer((req, res) => {
     console.error(e);
     json(req, res, { error: String(e.message) }, 500);
   }
-}).listen(PORT, '127.0.0.1', () => console.log(`Claude chat viewer: http://localhost:${PORT}  (reading ${ROOT})`));
+}).listen(PORT, '127.0.0.1', () => console.log(`dauclem: http://localhost:${PORT}  (reading ${ROOT})`));
