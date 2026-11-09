@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Claude Chats</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">Claude Chats</div>
+  <div class="searchbox">
+    <input id="q" type="search" placeholder="Search all chats…  ( / )" autocomplete="off" spellcheck="false">
+    <span id="qinfo" class="qinfo"></span>
+  </div>
+  <div class="chips" id="chips">
+    <button class="chip on" data-cat="me">You</button>
+    <button class="chip on" data-cat="agent">Claude</button>
+    <button class="chip on" data-cat="act">Actions</button>
+    <button class="chip on" data-cat="sub">Subagents</button>
+  </div>
+  <select id="sort" title="Sort results">
+    <option value="rank">Best match</option>
+    <option value="date">Newest</option>
+  </select>
+</header>
+<div class="layout">
+  <aside class="side">
+    <select id="proj"></select>
+    <input id="filter" type="search" placeholder="Filter sessions by title…" autocomplete="off">
+    <div id="progress" class="progress" hidden><div class="bar"></div><span></span></div>
+    <div id="list" class="list"></div>
+  </aside>
+  <main id="main" class="main"><div class="empty">Pick a chat, or search.</div></main>
+  <aside id="outline" class="outline" hidden></aside>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>
