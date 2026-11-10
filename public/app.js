@@ -3,9 +3,9 @@ const $ = s => document.querySelector(s);
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const tinvoke = (cmd, args) => { const f = (window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke) || (window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke); if (!f) throw new Error('no tauri invoke available'); return f(cmd, args); };
-const isTauri = () => !!((window.__TAURI__ && window.__TAURI__.core) || window.__TAURI_INTERNALS__);
+const hasTauri = () => !!((window.__TAURI__ && window.__TAURI__.core) || window.__TAURI_INTERNALS__);
 const api = async (path, params) => {
-  if (isTauri()) {
+  if (hasTauri()) {
     const parts = path.split('/');
     const endpoint = parts[0];
     if (endpoint === 'status') {
@@ -38,10 +38,10 @@ const api = async (path, params) => {
   throw new Error('dauclem must be run within the Tauri desktop application.');
 };
 
-const ulog = msg => { try { console.log(msg); if (isTauri()) tinvoke('log_frontend', { msg: String(msg) }).catch(() => {}); } catch { /* ignore */ } };
+const ulog = msg => { try { console.log(msg); if (hasTauri()) tinvoke('log_frontend', { msg: String(msg) }).catch(() => {}); } catch { /* ignore */ } };
 window.addEventListener('error', e => ulog('window error: ' + e.message + ' @ ' + e.filename + ':' + e.lineno));
 window.addEventListener('unhandledrejection', e => ulog('unhandled rejection: ' + (e.reason && e.reason.stack || e.reason)));
-ulog('app.js loaded, __TAURI__=' + (typeof window.__TAURI__) + ', INTERNALS=' + (typeof window.__TAURI_INTERNALS__) + ', isTauri=' + isTauri() + ', #proj=' + !!document.querySelector('#proj'));
+ulog('app.js loaded, __TAURI__=' + (typeof window.__TAURI__) + ', INTERNALS=' + (typeof window.__TAURI_INTERNALS__) + ', hasTauri=' + hasTauri() + ', #proj=' + !!document.querySelector('#proj'));
 
 const S = { projects: [], project: '', sessions: [], cats: { me: 1, agent: 1, act: 1, sub: 1 }, q: '', fq: '', items: [], agentItems: {}, fmatches: [], fi: -1, sort: 'rank', current: null, offset: 0, version: -1 };
 try { Object.assign(S.cats, JSON.parse(localStorage.getItem('cats') || '{}')); S.sort = localStorage.getItem('sort') || 'rank'; S.project = localStorage.getItem('project') || ''; } catch { /* ignore */ }
