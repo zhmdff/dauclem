@@ -6,7 +6,13 @@
   "description": "Fast local viewer + search for Claude Code chat history",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.1.0"
   },
   "engines": {
     "node": ">=22.5"

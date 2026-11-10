@@ -2,7 +2,39 @@
 const $ = s => document.querySelector(s);
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const isTauri = () => typeof window.__TAURI__ !== 'undefined' && !!window.__TAURI__.core;
 const api = async (path, params) => {
+  if (isTauri()) {
+    const parts = path.split('/');
+    const endpoint = parts[0];
+    if (endpoint === 'status') {
+      return await window.__TAURI__.core.invoke('status');
+    }
+    if (endpoint === 'projects') {
+      return await window.__TAURI__.core.invoke('projects');
+    }
+    if (endpoint === 'sessions') {
+      const project = params && params.project ? params.project : null;
+      return await window.__TAURI__.core.invoke('sessions', { project });
+    }
+    if (endpoint === 'search') {
+      return await window.__TAURI__.core.invoke('search', {
+        q: params?.q || '',
+        cats: params?.cats || null,
+        project: params?.project || null,
+        sort: params?.sort || null,
+        limit: params?.limit ? Number(params.limit) : null,
+        offset: params?.offset ? Number(params.offset) : null,
+      });
+    }
+    if (endpoint === 'session') {
+      const id = parts[1] || '';
+      const agent = params && params.agent ? params.agent : null;
+      return await window.__TAURI__.core.invoke('session_detail', { id, agent });
+    }
+    throw new Error('Unknown command: ' + path);
+  }
+
   const u = new URL('/api/' + path, location.origin);
   if (params) for (const [k, v] of Object.entries(params)) if (v !== '' && v != null) u.searchParams.set(k, v);
   return (await fetch(u)).json();
