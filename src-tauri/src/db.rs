@@ -1,17 +1,17 @@
 // db.rs — SQLite schema setup (mirrors src/db.js)
 use rusqlite::{Connection, Result};
 use std::path::Path;
+use std::time::Duration;
 
 pub fn open(path: &Path) -> Result<Connection> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).ok();
     }
     let conn = Connection::open(path)?;
+    let _: String = conn.query_row("PRAGMA journal_mode=WAL", [], |r| r.get(0))?;
+    conn.pragma_update(None, "synchronous", "OFF")?;
+    conn.busy_timeout(Duration::from_millis(30000))?;
     conn.execute_batch("
-        PRAGMA journal_mode=WAL;
-        PRAGMA synchronous=OFF;
-        PRAGMA busy_timeout=30000;
-
         CREATE TABLE IF NOT EXISTS sessions(
             id TEXT PRIMARY KEY,
             project TEXT,
@@ -88,5 +88,13 @@ mod tests {
         ).unwrap();
 
         assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn test_open_memory() {
+        let tmp = std::env::temp_dir().join("test_dauclem_open.db");
+        let _ = std::fs::remove_file(&tmp);
+        let res = open(&tmp);
+        assert!(res.is_ok(), "open failed: {:?}", res.err());
     }
 }
