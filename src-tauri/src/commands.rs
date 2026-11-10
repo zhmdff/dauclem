@@ -47,10 +47,16 @@ pub struct ProjectDto {
 
 #[tauri::command]
 pub fn projects(state: tauri::State<AppState>) -> Result<Vec<ProjectDto>, String> {
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
+    let conn = state.db.lock().map_err(|e| {
+        crate::logf!("projects: db lock failed: {}", e);
+        e.to_string()
+    })?;
     let mut stmt = conn
         .prepare("SELECT project, MIN(cwd) AS cwd, COUNT(*) AS n, MAX(last_ts) AS last FROM sessions GROUP BY project ORDER BY last DESC")
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            crate::logf!("projects: prepare failed: {}", e);
+            e.to_string()
+        })?;
 
     let rows = stmt
         .query_map([], |row| {
@@ -61,13 +67,25 @@ pub fn projects(state: tauri::State<AppState>) -> Result<Vec<ProjectDto>, String
                 last: row.get(3)?,
             })
         })
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            crate::logf!("projects: query failed: {}", e);
+            e.to_string()
+        })?;
 
     let mut out = Vec::new();
-    for r in rows.flatten() {
-        out.push(r);
+    for r in rows {
+        match r {
+            Ok(p) => out.push(p),
+            Err(e) => crate::logf!("projects: row error: {}", e),
+        }
     }
+    crate::logf!("projects: returning {} (db={})", out.len(), state.db_path.display());
     Ok(out)
+}
+
+#[tauri::command]
+pub fn log_frontend(msg: String) {
+    crate::logf!("[ui] {}", msg);
 }
 
 #[derive(Serialize)]

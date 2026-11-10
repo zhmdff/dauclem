@@ -11,6 +11,7 @@ Built as a native **Tauri v2** desktop app with an embedded **Rust** core.
 Claude Code stores rich conversation sessions locally in JSONL format, but browsing past conversations, inspecting tool invocations, and locating past solutions across projects can be cumbersome.
 
 **dauclem** provides an instant local search engine and viewer tailored specifically for Claude Code transcripts:
+
 - **Instant Search**: Find keywords across user prompts, Claude's answers, code edits, tool calls, and subagent runs in milliseconds.
 - **Native & Lightweight**: Built with Tauri v2 and native Rust. Tiny memory footprint (~30 MB RAM) with zero runtime dependencies.
 - **Automatic Background Indexing**: Detects new and updated chats automatically without blocking the UI.
@@ -68,19 +69,21 @@ The compiled release executable will be in `src-tauri/target/release/dauclem.exe
 
 You can configure the application using environment variables:
 
-| Variable | Description | Default |
-| :--- | :--- | :--- |
+| Variable          | Description                                  | Default              |
+| :---------------- | :------------------------------------------- | :------------------- |
 | `CLAUDE_PROJECTS` | Custom path to Claude Code project directory | `~/.claude/projects` |
 
 ### Examples
 
 **Point to a custom Claude projects directory (Windows PowerShell):**
+
 ```powershell
 $env:CLAUDE_PROJECTS="D:\custom\.claude\projects"
 npm run dev
 ```
 
 **Point to a custom Claude projects directory (POSIX / bash):**
+
 ```bash
 CLAUDE_PROJECTS="/path/to/custom/.claude/projects" npm run dev
 ```
@@ -125,13 +128,13 @@ dauclem/
 
 ## 🔌 Tauri IPC Commands
 
-| Tauri IPC Command | Description |
-| :--- | :--- |
-| `status` | Indexing state (`indexing`, `done`, `total`, `version`) |
-| `projects` | List detected projects, session counts, latest timestamp |
-| `sessions` | List sessions (optionally filtered by project) |
-| `search` | Full-text trigram search with highlighted snippets |
-| `session_detail` | Full transcript, parsed tool events, and subagent list |
+| Tauri IPC Command | Description                                              |
+| :---------------- | :------------------------------------------------------- |
+| `status`          | Indexing state (`indexing`, `done`, `total`, `version`)  |
+| `projects`        | List detected projects, session counts, latest timestamp |
+| `sessions`        | List sessions (optionally filtered by project)           |
+| `search`          | Full-text trigram search with highlighted snippets       |
+| `session_detail`  | Full transcript, parsed tool events, and subagent list   |
 
 ---
 

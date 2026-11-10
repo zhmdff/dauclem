@@ -347,6 +347,9 @@ pub fn index_all(
     }
 
     let found = scan(root);
+    if found.is_empty() {
+        crate::logf!("scan found 0 sessions under {}", root.display());
+    }
     let alive_ids: HashSet<String> = found.iter().map(|s| s.id.clone()).collect();
     let mut todo: Vec<SessionCandidate> = found
         .into_iter()
@@ -374,7 +377,7 @@ pub fn index_all(
     let mut done = 0;
     for s in &todo {
         if let Err(e) = index_session(&mut conn, s) {
-            eprintln!("index fail {} {:?}", s.file.display(), e);
+            crate::logf!("index fail {} {:?}", s.file.display(), e);
         }
         done += 1;
         status.done.store(done, Ordering::Relaxed);
@@ -383,6 +386,10 @@ pub fn index_all(
 
     if total > 50 {
         let _ = conn.execute("INSERT INTO fts(fts) VALUES('optimize')", []);
+    }
+
+    if total > 0 {
+        status.version.fetch_add(1, Ordering::Relaxed);
     }
 
     Ok(total)

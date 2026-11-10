@@ -37,6 +37,11 @@ const api = async (path, params) => {
   throw new Error('dauclem must be run within the Tauri desktop application.');
 };
 
+const ulog = msg => { try { console.log(msg); if (isTauri()) window.__TAURI__.core.invoke('log_frontend', { msg: String(msg) }).catch(() => {}); } catch { /* ignore */ } };
+window.addEventListener('error', e => ulog('window error: ' + e.message + ' @ ' + e.filename + ':' + e.lineno));
+window.addEventListener('unhandledrejection', e => ulog('unhandled rejection: ' + (e.reason && e.reason.stack || e.reason)));
+ulog('app.js loaded, isTauri=' + isTauri() + ', #proj=' + !!document.querySelector('#proj'));
+
 const S = { projects: [], project: '', sessions: [], cats: { me: 1, agent: 1, act: 1, sub: 1 }, q: '', fq: '', items: [], agentItems: {}, fmatches: [], fi: -1, sort: 'rank', current: null, offset: 0, version: -1 };
 try { Object.assign(S.cats, JSON.parse(localStorage.getItem('cats') || '{}')); S.sort = localStorage.getItem('sort') || 'rank'; S.project = localStorage.getItem('project') || ''; } catch { /* ignore */ }
 
@@ -489,7 +494,9 @@ async function loadSessions() {
 }
 async function loadProjects() {
   S.projects = await api('projects');
+  ulog('loadProjects: got ' + (Array.isArray(S.projects) ? S.projects.length : typeof S.projects) + ' projects, saved project=' + JSON.stringify(S.project));
   const sel = $('#proj'); const keep = S.project;
+  if (!sel) { ulog('loadProjects: #proj element missing'); return; }
   sel.innerHTML = '<option value="">All projects</option>';
   for (const p of S.projects) {
     const o = el('option'); o.value = p.project; o.textContent = pLabel(p.cwd, p.project) + ' (' + p.n + ')'; sel.append(o);
@@ -551,24 +558,44 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && document.activeElement.id === 'q') { $('#q').value = ''; S.q = ''; runSearch(); }
 });
 
+let wasIndexing = false;
 async function poll() {
   try {
     const st = await api('status');
     const p = $('#progress');
-    p.hidden = !(st.indexing && st.total);
-    if (st.indexing && st.total) { p.querySelector('.bar').style.width = (100 * st.done / st.total) + '%'; p.querySelector('span').textContent = 'Indexing ' + st.done + ' / ' + st.total; }
-    if (st.version !== S.version) {
-      S.version = st.version;
-      if (!st.indexing || st.done % 10 === 0) { await loadProjects(); await loadSessions(); }
+    const isIndexing = Boolean(st.indexing && st.total);
+    p.hidden = !isIndexing;
+    if (isIndexing) {
+      p.querySelector('.bar').style.width = (100 * st.done / st.total) + '%';
+      p.querySelector('span').textContent = 'Indexing ' + st.done + ' / ' + st.total;
     }
-  } catch { /* server down */ }
-  setTimeout(poll, st_delay());
+
+    const indexingJustFinished = wasIndexing && !st.indexing;
+    const versionChanged = st.version !== S.version;
+
+    if (indexingJustFinished || versionChanged) {
+      S.version = st.version;
+      if (!st.indexing || st.done % 10 === 0 || indexingJustFinished) {
+        await loadProjects();
+        await loadSessions();
+      }
+    }
+    wasIndexing = Boolean(st.indexing);
+  } catch (err) {
+    console.error('Polling error:', err);
+    ulog('Polling error: ' + (err && err.stack || err));
+  }
+  setTimeout(poll, wasIndexing ? 1000 : 4000);
 }
-let lastIdx = true;
-function st_delay() { return lastIdx ? 1000 : 4000; }
 
 (async () => {
   applyCats();
-  await loadProjects(); await loadSessions();
+  try {
+    await loadProjects();
+    await loadSessions();
+  } catch (err) {
+    console.error('Initial load failed:', err);
+    ulog('Initial load failed: ' + (err && err.stack || err));
+  }
   poll();
 })();
