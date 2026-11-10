@@ -25,6 +25,10 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .on_page_load(|w, payload| {
+            logf!("page_load {:?} url={}", payload.event(), payload.url());
+            let _ = w;
+        })
         .setup({
             let status = Arc::clone(&status);
             let root_dir = root_dir.clone();

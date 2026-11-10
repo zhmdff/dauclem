@@ -2,23 +2,24 @@
 const $ = s => document.querySelector(s);
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const isTauri = () => typeof window.__TAURI__ !== 'undefined' && !!window.__TAURI__.core;
+const tinvoke = (cmd, args) => { const f = (window.__TAURI__ && window.__TAURI__.core && window.__TAURI__.core.invoke) || (window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke); if (!f) throw new Error('no tauri invoke available'); return f(cmd, args); };
+const isTauri = () => !!((window.__TAURI__ && window.__TAURI__.core) || window.__TAURI_INTERNALS__);
 const api = async (path, params) => {
   if (isTauri()) {
     const parts = path.split('/');
     const endpoint = parts[0];
     if (endpoint === 'status') {
-      return await window.__TAURI__.core.invoke('status');
+      return await tinvoke('status');
     }
     if (endpoint === 'projects') {
-      return await window.__TAURI__.core.invoke('projects');
+      return await tinvoke('projects');
     }
     if (endpoint === 'sessions') {
       const project = params && params.project ? params.project : null;
-      return await window.__TAURI__.core.invoke('sessions', { project });
+      return await tinvoke('sessions', { project });
     }
     if (endpoint === 'search') {
-      return await window.__TAURI__.core.invoke('search', {
+      return await tinvoke('search', {
         q: params?.q || '',
         cats: params?.cats || null,
         project: params?.project || null,
@@ -30,17 +31,17 @@ const api = async (path, params) => {
     if (endpoint === 'session') {
       const id = parts[1] || '';
       const agent = params && params.agent ? params.agent : null;
-      return await window.__TAURI__.core.invoke('session_detail', { id, agent });
+      return await tinvoke('session_detail', { id, agent });
     }
     throw new Error('Unknown command: ' + path);
   }
   throw new Error('dauclem must be run within the Tauri desktop application.');
 };
 
-const ulog = msg => { try { console.log(msg); if (isTauri()) window.__TAURI__.core.invoke('log_frontend', { msg: String(msg) }).catch(() => {}); } catch { /* ignore */ } };
+const ulog = msg => { try { console.log(msg); if (isTauri()) tinvoke('log_frontend', { msg: String(msg) }).catch(() => {}); } catch { /* ignore */ } };
 window.addEventListener('error', e => ulog('window error: ' + e.message + ' @ ' + e.filename + ':' + e.lineno));
 window.addEventListener('unhandledrejection', e => ulog('unhandled rejection: ' + (e.reason && e.reason.stack || e.reason)));
-ulog('app.js loaded, isTauri=' + isTauri() + ', #proj=' + !!document.querySelector('#proj'));
+ulog('app.js loaded, __TAURI__=' + (typeof window.__TAURI__) + ', INTERNALS=' + (typeof window.__TAURI_INTERNALS__) + ', isTauri=' + isTauri() + ', #proj=' + !!document.querySelector('#proj'));
 
 const S = { projects: [], project: '', sessions: [], cats: { me: 1, agent: 1, act: 1, sub: 1 }, q: '', fq: '', items: [], agentItems: {}, fmatches: [], fi: -1, sort: 'rank', current: null, offset: 0, version: -1 };
 try { Object.assign(S.cats, JSON.parse(localStorage.getItem('cats') || '{}')); S.sort = localStorage.getItem('sort') || 'rank'; S.project = localStorage.getItem('project') || ''; } catch { /* ignore */ }
