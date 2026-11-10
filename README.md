@@ -2,7 +2,7 @@
 
 A fast, lightweight desktop application and local viewer to search, filter, and browse recent [Claude Code](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview) conversation history.
 
-Built as a native **Tauri v2** desktop app with an embedded **Rust** core, plus an optional zero-dependency **Node.js** web server fallback.
+Built as a native **Tauri v2** desktop app with an embedded **Rust** core.
 
 ---
 
@@ -39,27 +39,18 @@ Claude Code stores rich conversation sessions locally in JSONL format, but brows
 
 ## 📋 Requirements
 
-### For the Desktop App (Tauri v2)
 - **Runtime**: None! The compiled `.exe` / installer is completely standalone.
 - **Building from source**:
   - [Rust](https://www.rust-lang.org/tools/install) (1.78+)
   - Node.js (for `@tauri-apps/cli`)
   - Claude Code conversation logs located in `~/.claude/projects` (default location).
 
-### For the Web Server (Optional Fallback)
-- **Node.js >= 22.5.0** (required for built-in [`node:sqlite`](https://nodejs.org/api/sqlite.html) `DatabaseSync` support).
-- No `npm install` needed for web mode.
-
 ---
 
 ## 🚀 Quick Start
 
-### 🖥️ Option A: Native Desktop App (Recommended)
-
-Run as a high-performance desktop app:
-
 ```bash
-# 1. Install Tauri CLI (one-time)
+# 1. Install dependencies
 npm install
 
 # 2. Run in development mode (hot-reloading desktop window)
@@ -69,24 +60,7 @@ npm run dev
 npm run build
 ```
 
-The compiled release executable will be in `src-tauri/target/release/dauclem.exe` (or `src-tauri/target/debug/dauclem.exe` in debug mode).
-
-### 🌐 Option B: Local Web Server
-
-Run in your browser using the Node.js standard library:
-
-```bash
-# Start the web server (no npm install required!)
-npm start
-# or: node server.js
-```
-
-Then open your browser at:
-```
-http://localhost:4173
-```
-
-On initial launch, the indexer scans and indexes your existing Claude Code sessions into `data/index.db`. Recent sessions are indexed first and become searchable immediately.
+The compiled release executable will be in `src-tauri/target/release/dauclem.exe` and installers in `src-tauri/target/release/bundle/`.
 
 ---
 
@@ -94,17 +68,16 @@ On initial launch, the indexer scans and indexes your existing Claude Code sessi
 
 You can configure the application using environment variables:
 
-| Variable | Description | Default | Supported By |
-| :--- | :--- | :--- | :--- |
-| `CLAUDE_PROJECTS` | Custom path to Claude Code project directory | `~/.claude/projects` | Desktop App & Web Server |
-| `PORT` | HTTP server port | `4173` | Web Server only |
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `CLAUDE_PROJECTS` | Custom path to Claude Code project directory | `~/.claude/projects` |
 
 ### Examples
 
 **Point to a custom Claude projects directory (Windows PowerShell):**
 ```powershell
 $env:CLAUDE_PROJECTS="D:\custom\.claude\projects"
-npm run dev   # or: npm start
+npm run dev
 ```
 
 **Point to a custom Claude projects directory (POSIX / bash):**
@@ -140,35 +113,25 @@ dauclem/
 │       ├── parser.rs          # Streaming JSONL transcript parser & event normalizer
 │       ├── indexer.rs         # Incremental file watcher & SQLite batch transaction sync
 │       └── commands.rs        # Tauri IPC commands (status, projects, sessions, search, session_detail)
-├── server.js                  # Standalone Node.js HTTP server (optional fallback)
-├── src/                       # Node.js backend modules (optional fallback)
-│   ├── db.js                  # SQLite database schema, FTS5 trigram index, and triggers
-│   ├── indexer.js             # Session file scanning, hash tracking, and batch indexing
-│   ├── parse.js               # Fast JSONL transcript parser & event normalizer
-│   └── worker.js              # Worker thread entrypoint for background indexing
-├── public/                    # Shared UI (used by both Tauri Desktop & Web Server)
+├── public/                    # Desktop web view frontend
 │   ├── index.html             # Single-page interface layout
-│   ├── app.js                 # Frontend controller (dual-mode: Tauri IPC invoke or fetch)
+│   ├── app.js                 # Frontend controller using Tauri IPC
 │   └── style.css              # Dark-themed responsive styling
-├── data/
-│   └── index.db               # SQLite database (git-ignored)
-└── package.json               # Project manifest & dev scripts
+├── package.json               # Project manifest & dev scripts
+└── README.md
 ```
 
 ---
 
-## 🔌 API & IPC Commands
+## 🔌 Tauri IPC Commands
 
-Both the Tauri IPC interface (`window.__TAURI__.core.invoke`) and the HTTP REST server share identical capabilities:
-
-| Tauri IPC Command | HTTP Endpoint | Description |
-| :--- | :--- | :--- |
-| `status` | `GET /api/status` | Indexing state (`indexing`, `done`, `total`, `version`) |
-| `projects` | `GET /api/projects` | List detected projects, session counts, latest timestamp |
-| `sessions` | `GET /api/sessions?project=…` | List sessions (optionally filtered by project) |
-| `search` | `GET /api/search?q=…&cats=…` | Full-text trigram search with highlighted snippets |
-| `session_detail` | `GET /api/session/:id` | Full transcript, parsed tool events, and subagent list |
-| `session_detail` | `GET /api/session/:id?agent=…` | Transcript for a specific subagent |
+| Tauri IPC Command | Description |
+| :--- | :--- |
+| `status` | Indexing state (`indexing`, `done`, `total`, `version`) |
+| `projects` | List detected projects, session counts, latest timestamp |
+| `sessions` | List sessions (optionally filtered by project) |
+| `search` | Full-text trigram search with highlighted snippets |
+| `session_detail` | Full transcript, parsed tool events, and subagent list |
 
 ---
 

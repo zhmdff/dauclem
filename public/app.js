@@ -34,10 +34,7 @@ const api = async (path, params) => {
     }
     throw new Error('Unknown command: ' + path);
   }
-
-  const u = new URL('/api/' + path, location.origin);
-  if (params) for (const [k, v] of Object.entries(params)) if (v !== '' && v != null) u.searchParams.set(k, v);
-  return (await fetch(u)).json();
+  throw new Error('dauclem must be run within the Tauri desktop application.');
 };
 
 const S = { projects: [], project: '', sessions: [], cats: { me: 1, agent: 1, act: 1, sub: 1 }, q: '', fq: '', items: [], agentItems: {}, fmatches: [], fi: -1, sort: 'rank', current: null, offset: 0, version: -1 };
