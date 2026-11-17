@@ -133,6 +133,7 @@ pub fn run() {
             commands::sessions,
             commands::search,
             commands::session_detail,
+            commands::resume_session,
             commands::log_frontend
         ])
         .run(tauri::generate_context!())

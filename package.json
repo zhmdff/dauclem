@@ -1,14 +1,15 @@
 {
   "name": "dauclem",
   "author": "zhmdff <zhmdff@gmail.com> (https://zhmdff.com)",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Fast local viewer + search for Claude Code chat history",
   "scripts": {
     "start": "tauri dev",
     "dev": "tauri dev",
     "build": "tauri build",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "release": "powershell -ExecutionPolicy Bypass -File scripts/release.ps1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.1.0"

@@ -277,8 +277,15 @@ async function openSession(id, target) {
     const head = el('div', 'sesshead');
     head.innerHTML = '<div class="hrow"><div class="htext"><h1></h1><div class="m"></div></div>' +
       '<div class="find"><input id="fq" type="search" placeholder="Find in chat…  (Ctrl+F)" autocomplete="off" spellcheck="false">' +
-      '<span id="fcount"></span><button id="fprev" title="Previous (Shift+Enter)">↑</button><button id="fnext" title="Next (Enter)">↓</button></div></div>';
+      '<span id="fcount"></span><button id="fprev" title="Previous (Shift+Enter)">↑</button><button id="fnext" title="Next (Enter)">↓</button></div>' +
+      '<button id="resume" class="resume" title="Open terminal in project and run claude --resume">▶ Resume</button></div>';
     wireFind(head);
+    head.querySelector('#resume').onclick = async e => {
+      const b = e.currentTarget;
+      try { await tinvoke('resume_session', { id }); b.textContent = '✓ Opened'; }
+      catch (err) { b.textContent = '✗ ' + err; }
+      setTimeout(() => { b.textContent = '▶ Resume'; }, 2500);
+    };
     head.querySelector('h1').textContent = s.title;
     head.querySelector('.m').textContent = pLabel(s.cwd, s.project) + ' · ' + fmtDate(s.first_ts) + ' → ' + fmtDate(s.last_ts) + ' · ' + s.n_me + ' you · ' + s.n_agent + ' claude · ' + s.n_act + ' actions · ' + s.n_agents + ' subagents';
     const th = el('div', 'thread');

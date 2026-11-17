@@ -72,6 +72,8 @@ mark { background: var(--mark); color: inherit; border-radius: 2px; padding: 0 1
 #fcount { font-size: 12px; color: var(--muted); min-width: 56px; text-align: right; }
 .find button { width: 28px; height: 28px; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; cursor: pointer; }
 .find button:hover { border-color: var(--accent); }
+.resume { flex: none; height: 28px; padding: 0 12px; border: 1px solid var(--accent); background: var(--panel); color: inherit; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+.resume:hover { background: var(--accent); color: #fff; }
 .sesshead h1 { margin: 0 0 2px; font-size: 18px; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sesshead .m { color: var(--muted); font-size: 12px; }
 .thread { max-width: 900px; margin: 0 auto; padding: 14px 28px 80px; }

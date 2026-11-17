@@ -155,6 +155,42 @@ pub fn sessions(
     Ok(out)
 }
 
+#[tauri::command]
+pub fn resume_session(id: String, state: tauri::State<AppState>) -> Result<(), String> {
+    if id.is_empty() || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
+        return Err("bad session id".to_string());
+    }
+    let cwd: Option<String> = {
+        let conn = state.db.lock().map_err(|e| e.to_string())?;
+        conn.query_row("SELECT cwd FROM sessions WHERE id=?", params![id], |r| r.get(0))
+            .map_err(|_| "session not found".to_string())?
+    };
+    let dir = cwd
+        .map(PathBuf::from)
+        .filter(|p| p.is_dir())
+        .or_else(dirs::home_dir)
+        .ok_or_else(|| "no working directory".to_string())?;
+    crate::logf!("resume_session: id={} dir={}", id, dir.display());
+
+    #[cfg(windows)]
+    {
+        use std::process::Command;
+        // `start` opens a new console window; /D sets its cwd; cmd /K keeps it open.
+        Command::new("cmd")
+            .args(["/C", "start", "Claude resume", "/D"])
+            .arg(&dir)
+            .args(["cmd", "/K", "claude", "--resume", &id])
+            .spawn()
+            .map_err(|e| e.to_string())?;
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = dir;
+        Err("resume only supported on Windows".to_string())
+    }
+}
+
 fn fts_query(s: &str) -> String {
     let mut terms = Vec::new();
     let chars: Vec<char> = s.chars().collect();
