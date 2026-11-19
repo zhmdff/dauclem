@@ -21,7 +21,8 @@ html, body { height: 100%; margin: 0; }
 body { font: 14px/1.5 var(--font); background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
 button, input, select { font: inherit; color: inherit; }
 .top { display: flex; align-items: center; gap: 14px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
-.brand { font-weight: 650; letter-spacing: -.01em; }
+.brand { font-weight: 650; letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; }
+.brand img { border-radius: 5px; }
 .searchbox { position: relative; flex: 1; max-width: 640px; }
 #q { width: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); outline: none; }
 #q:focus, #filter:focus, select:focus { border-color: var(--accent); }
