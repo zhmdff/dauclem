@@ -1,37 +1,14 @@
-# Bump version, build installer, launch it so you can update.
-# Usage: .\scripts\release.ps1 [-Bump patch|minor|major|none] [-Version 1.2.3] [-NoInstall]
+# Build installer at current version, launch it so you can update.
+# Versioning is done by the GitHub release workflow.
+# Usage: .\scripts\release.ps1 [-NoInstall]
 param(
-  [ValidateSet('patch', 'minor', 'major', 'none')][string]$Bump = 'patch',
-  [string]$Version,
   [switch]$NoInstall
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 Set-Location $root
 
-$confPath = 'src-tauri/tauri.conf.json'
-$conf = Get-Content $confPath -Raw | ConvertFrom-Json
-$cur = [version]$conf.version
-
-if ($Version) { $new = $Version }
-else {
-  switch ($Bump) {
-    'major' { $new = "$($cur.Major + 1).0.0" }
-    'minor' { $new = "$($cur.Major).$($cur.Minor + 1).0" }
-    'patch' { $new = "$($cur.Major).$($cur.Minor).$($cur.Build + 1)" }
-    'none'  { $new = $conf.version }
-  }
-}
-Write-Host "Version: $($conf.version) -> $new"
-
-function Set-FileText($path, $pattern, $replacement) {
-  $t = Get-Content $path -Raw
-  $t = [regex]::Replace($t, $pattern, $replacement, 1)
-  [System.IO.File]::WriteAllText((Join-Path $root $path), $t, (New-Object System.Text.UTF8Encoding $false))
-}
-Set-FileText $confPath '"version":\s*"[^"]*"' "`"version`": `"$new`""
-Set-FileText 'package.json' '"version":\s*"[^"]*"' "`"version`": `"$new`""
-Set-FileText 'src-tauri/Cargo.toml' '(?m)^version\s*=\s*"[^"]*"' "version = `"$new`""
+$new = (Get-Content 'src-tauri/tauri.conf.json' -Raw | ConvertFrom-Json).version
 
 # Stop running app so build can overwrite the exe
 Get-Process dauclem -ErrorAction SilentlyContinue | Stop-Process -Force

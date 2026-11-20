@@ -607,3 +607,22 @@ async function poll() {
   }
   poll();
 })();
+
+// Draggable panel dividers; widths persist in localStorage.
+document.querySelectorAll('.rz').forEach(h => {
+  const v = h.dataset.var, min = +h.dataset.min, max = +h.dataset.max, rev = !!h.dataset.rev;
+  const root = document.documentElement.style;
+  try { const w = localStorage.getItem(v); if (w) root.setProperty(v, w); } catch { /* ignore */ }
+  h.addEventListener('pointerdown', e => {
+    const panel = rev ? h.nextElementSibling : h.previousElementSibling;
+    const x0 = e.clientX, w0 = panel.getBoundingClientRect().width;
+    h.setPointerCapture(e.pointerId); h.classList.add('drag'); document.body.classList.add('resizing');
+    const move = ev => root.setProperty(v, Math.min(max, Math.max(min, w0 + (rev ? x0 - ev.clientX : ev.clientX - x0))) + 'px');
+    const up = () => {
+      h.removeEventListener('pointermove', move); h.removeEventListener('pointerup', up);
+      h.classList.remove('drag'); document.body.classList.remove('resizing');
+      try { localStorage.setItem(v, root.getPropertyValue(v)); } catch { /* ignore */ }
+    };
+    h.addEventListener('pointermove', move); h.addEventListener('pointerup', up);
+  });
+});

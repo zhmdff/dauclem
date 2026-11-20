@@ -576,7 +576,7 @@ dependencies = [
 
 [[package]]
 name = "dauclem"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
  "dirs 6.0.0",
  "once_cell",

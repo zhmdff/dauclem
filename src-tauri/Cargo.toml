@@ -1,6 +1,6 @@
 [package]
 name = "dauclem"
-version = "1.0.2"
+version = "1.0.3"
 description = "Fast local viewer + search for Claude Code chat history"
 authors = ["zhmdff <zhmdff@gmail.com>"]
 edition = "2021"
